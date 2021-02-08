@@ -49,7 +49,7 @@ jobs:
         twine check dist/*
 
   build:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -74,7 +74,7 @@ jobs:
             --repository-url https://upload.pypi.org/legacy/
 
   commit:
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -101,4 +101,4 @@ jobs:
           git add setup.py
           git commit -m "update version to: ${{ steps.app_version_bump.outputs.app_version }} (github action)"
 
-          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/ArieLevs/nalkinscloud-mqtt-python-client HEAD:master
+          git push https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/ArieLevs/nalkinscloud-mqtt-python-client HEAD:main
