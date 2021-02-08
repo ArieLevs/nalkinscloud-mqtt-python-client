@@ -1,4 +1,9 @@
 # nalkinscloud-mqtt-python-client
+[![](https://github.com/arielevs/pybump/workflows/Python%20package/badge.svg)](https://pypi.org/project/nalkinscloud-mqtt-python-client/)
+[![](https://img.shields.io/pypi/v/nalkinscloud-mqtt-python-client.svg)](https://pypi.org/project/nalkinscloud-mqtt-python-client/)
+[![](https://img.shields.io/pypi/l/nalkinscloud-mqtt-python-client.svg?colorB=blue)](https://pypi.org/project/nalkinscloud-mqtt-python-client/)
+[![](https://img.shields.io/pypi/pyversions/nalkinscloud-mqtt-python-client.svg)](https://pypi.org/project/nalkinscloud-mqtt-python-client/)
+
 MQTT Client package for nalkinscloud project usage
 
 ## Usage
