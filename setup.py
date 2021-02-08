@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="nalkinscloud_mqtt_python_client",
-    version="0.0.1",
+    version="0.0.2",
     author="Arie Lev",
     author_email="levinson.arie@gmail.com",
     description="Simple MQTT client implementation that fits nalkinscloud projects",
