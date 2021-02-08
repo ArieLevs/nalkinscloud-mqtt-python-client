@@ -4,7 +4,7 @@ on:
   push:
     # run only when pushed to master branch.
     branches:
-      - master
+      - main
 
     # run on every publish tags.
     tags:
