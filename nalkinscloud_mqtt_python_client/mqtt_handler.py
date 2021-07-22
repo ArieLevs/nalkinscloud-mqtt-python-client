@@ -1,4 +1,3 @@
-
 import paho.mqtt.client as mqtt
 import ssl
 import logging
@@ -15,44 +14,53 @@ CONNECTION_RETURN_STATUS = {
 }
 
 
-class MQTTClient(object):
-    _broker_host = None
-    _broker_port = None
-    _broker_tls = None
-    _broker_cert = None
-    _broker_tls_skip = False
+class NalkinscloudDevice(object):
 
-    def __init__(self, broker_host='127.0.0.1', broker_port=1883,
-                 broker_tls=False, broker_cert=None, broker_tls_skip=False):
-        logger.info("creating new client {} with host: {}:{}".format(self, broker_host, broker_port))
+    def __init__(self):
+        logger.info("creating new client {}".format(self))
+        self._broker_host = None
+        self._broker_port = None
+        self._broker_cert = None
+        self._broker_tls = None
+        self._broker_tls_skip = None
+
+        self._device_id = None
+        self._device_type = None
+        self._qos = None
+        self._mqtt_client = None
+
+    def init_broker(self, broker_host='127.0.0.1', broker_port=1883,
+                    broker_tls=False, broker_cert=None, broker_tls_skip=False):
+        logger.info("initializing client {} with broker: '{}:{}'".format(self, broker_host, broker_port))
         self._broker_host = broker_host
         self._broker_port = broker_port
         self._broker_cert = broker_cert
         self._broker_tls = broker_tls
         self._broker_tls_skip = broker_tls_skip
 
-        self._device_id = None
-        self._device_type = None
-        self._qos = None
-        self._subscription_update = None
-        self._mqtt_client = None
-
-    def init_device(self, device_id, device_type, device_password, qos, subscription_update,
-                    on_connect_func=None, on_message_func=None):
+    def init_device(self, device_id, device_type, device_password, qos):
+        """
+        initialize a device, set its connection values, and on_connect / on_message
+        :param device_id:
+        :param device_type:
+        :param device_password:
+        :param qos:
+        :return:
+        """
         logger.info("initializing client {} with id: {}".format(self, device_id))
         self._device_id = device_id
         self._device_type = device_type
         self._qos = qos
-        self._subscription_update = subscription_update
 
         # Client(client_id="", clean_session=True, userdata=None, protocol=MQTTv31)
         self._mqtt_client = mqtt.Client(client_id=self._device_id,
-                                        clean_session=False,
+                                        clean_session=True,
                                         userdata={'device_id': self._device_id,
                                                   'device_type': device_type,
                                                   'qos': qos})
 
-        self._mqtt_client.username_pw_set(username=self._device_id, password=device_password)
+        # Using password under username parameter since passing access token
+        self._mqtt_client.username_pw_set(username=device_password)
 
         if self._broker_tls:
             if self._broker_tls_skip:
@@ -64,19 +72,16 @@ class MQTTClient(object):
                 self._mqtt_client.tls_set(ca_certs=self._broker_cert,
                                           tls_version=ssl.PROTOCOL_TLSv1_2)
 
-        if on_connect_func:
-            self._mqtt_client.on_connect = on_connect_func
-        else:
-            self._mqtt_client.on_connect = self.on_connect
-
-        if not on_message_func:
-            self._mqtt_client.on_message = self.on_message
-        else:
-            self._mqtt_client.on_message = on_message_func
+        self._mqtt_client.on_connect = self.on_connect
+        self._mqtt_client.on_message = self.on_message
 
     def get_mqtt_client(self):
         return self._mqtt_client
 
+    # thingsboard currently does not support LWT
+    # https://github.com/thingsboard/thingsboard/issues/416
+    # https://github.com/thingsboard/thingsboard/issues/3165
+    # TODO set LWT back when implemented mosquitto bridge broker
     # Set a Will (LWT) to be sent to the broker. If the client disconnects without calling disconnect(),
     # the broker will publish the message on its behalf.
     def set_lwt(self, device_id, device_type, qos, is_retained):  # Last Will and Testament
@@ -102,7 +107,7 @@ class MQTTClient(object):
         return self._mqtt_client.subscribe(topic, qos=qos)
 
     def publish(self, topic, payload, qos):
-        logger.info("Publish: " + topic)
+        logger.info("Publish: {} to: {}".format(payload, topic))
         self._mqtt_client.publish(topic, payload=payload, qos=qos, retain=False)
 
     def publish_retained(self, topic, payload, qos):
@@ -117,19 +122,18 @@ class MQTTClient(object):
         logger.info("client: {}, userdata: {}".format(client, userdata))
 
     def on_connect(self, mqtt_client, userdata, flags, rc):
-        logger.info("client {} connection, user_data: {}, flags: {}".format(
-            mqtt_client, userdata, flags
+        logger.info("client {} connection, user_data: {}, flags: {}, result code: {}".format(
+            mqtt_client, userdata, flags, str(rc)
         ))
         if rc != 0:
             logger.error("Error: " + self._device_id + ", " + CONNECTION_RETURN_STATUS.get(rc))
             exit(1)
         else:
             logger.info(CONNECTION_RETURN_STATUS.get(rc))
-            self.publish_retained(topic=self._device_id + '/' + self._device_type + '/status',
-                                  payload="online",
-                                  qos=self._qos)
-            self.subscribe(topic=self._device_id + '/' + self._device_type + '/' + self._subscription_update,
-                           qos=self._qos)
+            # self.publish_retained(topic=self._device_id + '/' + self._device_type + '/status',
+            #                      payload="online",
+            #                      qos=self._qos)
+            self.subscribe(topic="v1/devices/me/rpc/request/+", qos=self._qos)
 
     # Disconnect from the broker cleanly.
     # Using disconnect() will not result in a will (LWT) message being sent by the broker
