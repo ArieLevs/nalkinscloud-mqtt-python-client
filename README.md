@@ -10,27 +10,24 @@ MQTT Client package for nalkinscloud project usage
 ```python
 ## activate package logging by:
 # logging.getLogger('nalkinscloud_mqtt_python_client')
+from nalkinscloud_mqtt_python_client.devices import SwitchDevice
 
-from nalkinscloud_mqtt_python_client.mqtt_handler import MQTTClient
+def set_switch_state(state):
+    print("SET SWITCH STATE HERE")
+    return state
 
-client = MQTTClient(broker_host="mosquitto.alpha.nalkins.cloud",
+device = SwitchDevice(set_data_function=set_switch_state)
+device.init_broker(broker_host="mosquitto.alpha.nalkins.cloud",
                     broker_port=8883,
                     broker_cert=None,
                     broker_tls=True,
                     broker_tls_skip=True)
 
-
-# This is the event handler method that receives the Mosquito messages
-def on_message(client, userdata, message):
-    print("message received: {}".format(message.payload.decode('UTF-8')))
-
 # this client will have default 'on_connect' function, but a custom 'on_message' function
-client.init_device(device_id='some_device_id', device_type='sensor', device_password='none',
-                   qos=0, subscription_update="status", on_message_func=on_message)
-client.connect()
-client.subscribe("test_dht_device_id/dht/temperature", 2)
-client.subscribe("test_dht_device_id/dht/humidity", 2)
+device.init_device(device_id='some_device_id', device_type='sensor', device_password='none', qos=0)
+device.connect()
+device.subscribe("v1/devices/me/rpc/request/+", 1)
 
 # Start the MQTT Mosquito process loop
-client.do_loop_forever()
+device.do_loop_forever()
 ```
