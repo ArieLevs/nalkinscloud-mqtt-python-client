@@ -1,6 +1,6 @@
 import unittest
 
-from nalkinscloud_mqtt_python_client.mqtt_handler import MQTTClient, is_valid_topic
+from nalkinscloud_mqtt_python_client.mqtt_handler import NalkinscloudDevice, is_valid_topic
 
 valid_topic = 'some/valid/topic'
 invalid_topic = 'invalid/topic'
@@ -31,14 +31,14 @@ class MqttHandlerTest(unittest.TestCase):
         self.subscription_update = 'update_now'
 
         # Define mqtt_client for current test case
-        self.mqtt_client = MQTTClient(broker_host='localhost', broker_port=1883,
-                                      broker_cert=None, broker_tls=False)
+        self.mqtt_client = NalkinscloudDevice()
 
+        self.mqtt_client.init_broker(broker_host='localhost', broker_port=1883,
+                                     broker_cert=None, broker_tls=False)
         self.mqtt_client.init_device(device_id=self.device_id,
                                      device_password=self.device_pass,
                                      device_type=self.device_type,
-                                     qos=self.device_qos,
-                                     subscription_update=self.subscription_update)
+                                     qos=self.device_qos)
 
     def test_init_device(self):
         self.assertEqual('test_dht_simulator', self.mqtt_client._device_id)
