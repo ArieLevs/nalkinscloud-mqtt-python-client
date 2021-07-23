@@ -102,18 +102,18 @@ class NalkinscloudDevice(object):
                          '. Port: ' + str(self._broker_port))
             return False
 
-    def subscribe(self, topic, qos):
+    def subscribe(self, topic):
         logger.info("Subscribing to: " + topic)
-        return self._mqtt_client.subscribe(topic, qos=qos)
+        return self._mqtt_client.subscribe(topic, qos=self._qos)
 
-    def publish(self, topic, payload, qos):
-        logger.info("Publish: {} to: {}".format(payload, topic))
-        self._mqtt_client.publish(topic, payload=payload, qos=qos, retain=False)
+    def publish(self, topic, payload):
+        logger.info("Publish: {} to: {}".format(topic, payload))
+        self._mqtt_client.publish(topic, payload=payload, qos=self._qos, retain=False)
 
     def publish_retained(self, topic, payload, qos):
         # publish(topic, payload=None, qos=0, retain=False)
         logger.info("Publish RETAINED: " + topic)
-        self._mqtt_client.publish(topic, payload=payload, qos=qos, retain=True)
+        self._mqtt_client.publish(topic, payload=payload, qos=self._qos, retain=True)
 
     @staticmethod
     def on_message(client, userdata, message):
@@ -133,7 +133,7 @@ class NalkinscloudDevice(object):
             # self.publish_retained(topic=self._device_id + '/' + self._device_type + '/status',
             #                      payload="online",
             #                      qos=self._qos)
-            self.subscribe(topic="v1/devices/me/rpc/request/+", qos=self._qos)
+            self.subscribe(topic="v1/devices/me/rpc/request/+")
 
     # Disconnect from the broker cleanly.
     # Using disconnect() will not result in a will (LWT) message being sent by the broker
