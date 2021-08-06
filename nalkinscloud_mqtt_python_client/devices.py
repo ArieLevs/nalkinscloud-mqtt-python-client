@@ -70,11 +70,15 @@ class DHTDevice(NalkinscloudDevice):
         logger.info("client {} connection, user_data: {}, flags: {}, result code: {}".format(
             client, userdata, flags, str(rc)
         ))
-        # Subscribing to receive RPC requests
-        self.subscribe(topic="v1/devices/me/rpc/request/+")
-        # Sending current GPIO status
-        self.publish(topic='v1/devices/me/telemetry',
-                     payload=json.dumps(self._data))
+        if rc != 0:
+            logger.error("Error: " + self._device_id + ", " + CONNECTION_RETURN_STATUS.get(rc))
+            exit(1)
+        else:
+            # Subscribing to receive RPC requests
+            self.subscribe(topic="v1/devices/me/rpc/request/+")
+            # Sending current GPIO status
+            self.publish(topic='v1/devices/me/telemetry',
+                         payload=json.dumps(self._data))
 
     def on_message(self, client, userdata, message):
         logger.info('message received: {{ "topic": {0}, "payload": {1}, "qos": {2}, "retain": {3} }}'.format(
